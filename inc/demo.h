@@ -18,6 +18,6 @@ void delay(void) {
     }
 }
 
-void set_portf_led(uint32_t value) {
-    GPIO_PORTF_DATA_R = value;
+void toggle_portf_led(uint32_t value) {
+    GPIO_PORTF_DATA_R ^= value;
 }
