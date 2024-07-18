@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "tm4c123gh6pm.h"
 #include "gpio.h"
+#include "demo.h"
 
 // specific port definitions
 #define PF4 (*((volatile unsigned long *)0x40025040))
@@ -13,32 +14,20 @@
 #define PF1 (*((volatile unsigned long *)0x40025008))
 #define PF0 (*((volatile unsigned long *)0x40025004))
 
-unsigned long Led;
+static unsigned long led;
 
-void Delay(void){
-    unsigned long volatile time = 800000;
-    while(time) {
-      	time--;
-    }
-}
 int main(void){
+    // init port
     PortF_Init();
+
+    // colors
+    color_t blue_color = blue;
+    color_t no_color = none;
+
     while(1) {
-      Led = 0x06;
-      GPIO_PORTF_DATA_R = Led;
-      Delay();
-      Led = 0x00;
-      GPIO_PORTF_DATA_R = Led;
-      Delay();
+       set_portf_led(blue_color);
+       delay();
+       set_portf_led(no_color);
+       delay();
     }
 }
-
-// Color    LED(s) PortF
-// dark     ---    0
-// red      R--    0x02
-// blue     --B    0x04
-// green    -G-    0x08
-// yellow   RG-    0x0A
-// sky blue -GB    0x0C
-// white    RGB    0x0E
-// pink     R-B    0x06
