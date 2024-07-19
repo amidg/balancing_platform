@@ -21,7 +21,6 @@ static volatile unsigned long systime = 0; // ms timer
 // 10%, int value is used because of floating point building bug
 // need to figure it out
 static uint8_t duty = 10; 
-static uint8_t direction = 1; // rising direction
 
 int main(void){
     // init port
@@ -48,13 +47,9 @@ int main(void){
     set_pf2_pwm_duty(duty);
     while (1) {
         // control LED brightness by changing duty cycle
-        if (!(systime%100)) {
-            if (duty == 100)
-                direction = 0;
-            else if (duty == 10)
-                direction = 1;
+        if (!(systime%200)) {
             set_pf2_pwm_duty(duty);
-            duty = (direction) ? duty+10 : duty-10;
+            duty = (duty == 100) ? 10 : duty+10;
         }
     }
 }

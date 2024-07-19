@@ -73,16 +73,16 @@ void enable_pwm_portf(void) {
     SYSCTL_RCGCPWM_R |= 2; // page 354 enable PWM1 clock
 
     /* Enable System Clock Divisor function  */
-    //SYSCTL_RCC_R |= (1<<20);
+    SYSCTL_RCC_R |= (1<<20);
 
-    ///* 
-    // * Use pre-divider value of 64
-    // * after that feed clock to PWM1 module
-    // */
-    //SYSCTL_RCC_R |= 0x000E0000; 
+    /* 
+     * Use pre-divider value of 64
+     * after that feed clock to PWM1 module
+     */
+    SYSCTL_RCC_R |= 0x000E0000; 
 
     /* Directly feed clock to PWM1 module without pre-divider */
-    SYSCTL_RCC_R &= ~0x00100000; // page 255
+    //SYSCTL_RCC_R &= ~0x00100000; // page 255
 }
 
 /* 
@@ -105,12 +105,13 @@ void enable_pwm_pf2(void) { // page 1240
     /* Set PWM output when counter reloaded and clear when matches PWMCMPA */
     PWM1_3_GENA_R = 0x0000008C;
 
-    /* set load value for 1kHz (16MHz/16000) */
-    /* set load value for 50Hz 16MHz/65 = 250kHz and (250KHz/5000) */
-    PWM1_3_LOAD_R = 16000;
+    /* 
+     * 16MHz/65 = 250kHz
+     */
+    PWM1_3_LOAD_R = 5000; // 16 bit value
 
-    /* Set Duty Cycle of 100% to PWM1CMPA by default*/
-    PWM1_3_CMPA_R = 0;
+    /* Set Duty Cycle of 0% to PWM1CMPA by default*/
+    PWM1_3_CMPA_R = PWM1_3_LOAD_R-1;
 
     /* Enable Generator 3 counter */
     PWM1_3_CTL_R = 1;
@@ -121,5 +122,6 @@ void enable_pwm_pf2(void) { // page 1240
 
 // duty must be between 0 and 100
 void set_pf2_pwm_duty(uint8_t duty) {
-    PWM1_3_CMPA_R = PWM1_3_LOAD_R*duty/100 - 1;
+    /* page 1280 */
+    PWM1_3_CMPA_R = PWM1_3_LOAD_R*(100-duty)/100;
 }
