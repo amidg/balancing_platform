@@ -1,6 +1,24 @@
 #include "tm4c123gh6pm.h"
 
 /*
+ * SysTick setup function
+ */
+void systick_enable(int ms) {
+    /* 
+     * program value of the STRELOAD register
+     * (time S) / (1/16MHz) - 1
+     * 1 ms = 0.001s / (1/16*10^6) = 16000 - 1 = 15999
+     */
+    NVIC_ST_RELOAD_R = 16000*ms-1;
+
+    /* clear STCURRENT value */
+    NVIC_ST_CURRENT_R = 0;
+
+    /* configure STCTRL register for the required operation mode */
+    NVIC_ST_CTRL_R = 7; // see page 138 of the MCU manual
+}
+
+/*
  * 6x 16/32-bit General Purpose Timers
  * 6x 32/64-bit Wide General Purpose Timers
  * Each Timer has 2 blocks: A and B
@@ -24,7 +42,7 @@ void enable_timer1a_1000ms(void) {
      * 16MHz clock = 65536 / 16*10^6 = 4.096ms
      * Prescaler add additional bits to the size of the timer
      *  8-bit and allows to reduce frequency of 16Mhz by 1-255.
-     *  
+     *  )
      *  Prescaler is calculated via:
      *  DELAY_WANTED / MAX_DELAY (4.096ms) = PRESCALER
      */

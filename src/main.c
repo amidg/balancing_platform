@@ -17,24 +17,33 @@
 
 static unsigned long led;
 static color_t blue_clr = blue;
+static volatile unsigned long systime = 0; // ms timer
 
 int main(void){
     // init port
     PortF_Init();
     
     // enable timer
-    enable_timer1a_1000ms();
+    //enable_timer1a_1000ms();
+    systick_enable(1); // 1ms systick like in FreeRTOS
 
     while(1) {
-       //toggle_portf_led(blue_clr);
-       //delay();
+        if (!(systime%2000)) {
+            toggle_portf_led(blue_clr);
+        } // trigger blue led every 2s using systick
     }
 }
 
-// interrupt handler
-Timer1A_ISR() {
+/*
+ * Interrupt Handlers: name must match the startup.c file
+ */
+void Timer1A_ISR(void) {
     if (TIMER1_MIS_R & 0x1) {
         toggle_portf_led(blue_clr);
         TIMER1_ICR_R = 0x1; // clear interrupt flag
     }
+}
+
+void SysTick_Handler(void) {
+    systime++;
 }
