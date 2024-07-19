@@ -15,3 +15,5 @@ void PortF_Init(void) {
     GPIO_PORTF_DEN_R = 0x1F;          // 7) enable digital I/O on PF4-0
     __asm__ volatile ("dmb");         // allow time to start
 }
+
+

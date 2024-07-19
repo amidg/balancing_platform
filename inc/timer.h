@@ -121,5 +121,5 @@ void enable_pwm_pf2(void) { // page 1240
 
 // duty must be between 0 and 100
 void set_pf2_pwm_duty(uint8_t duty) {
-    PWM1_3_CMPA_R = PWM1_3_LOAD_R*duty/100;
+    PWM1_3_CMPA_R = PWM1_3_LOAD_R*duty/100 - 1;
 }

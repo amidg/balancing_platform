@@ -15,10 +15,12 @@
 #define PF1 (*((volatile unsigned long *)0x40025008)) // RED LED
 #define PF0 (*((volatile unsigned long *)0x40025004)) // SW2
 
-static unsigned long led;
 static color_t blue_clr = blue;
 static volatile unsigned long systime = 0; // ms timer
-static uint8_t duty = 10; // 10%, int value is used because of floating point building bug, need to figure it out
+
+// 10%, int value is used because of floating point building bug
+// need to figure it out
+static uint8_t duty = 10; 
 static uint8_t direction = 1; // rising direction
 
 int main(void){
@@ -46,7 +48,7 @@ int main(void){
     set_pf2_pwm_duty(duty);
     while (1) {
         // control LED brightness by changing duty cycle
-        if (!(systime%250)) {
+        if (!(systime%100)) {
             if (duty == 100)
                 direction = 0;
             else if (duty == 10)
