@@ -25,6 +25,7 @@ RM      = rm -rf
 MKDIR   = @mkdir -p $(@D) #creates folders if not present
 
 # GCC FLAGS
+# https://developer.arm.com/documentation/dui0774/l/Compiler-Command-line-Options/-mfloat-abi
 CFLAGS = -ggdb -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -lgcc
 CFLAGS += -mfloat-abi=softfp -Os -MD -std=c99 -c    
 
