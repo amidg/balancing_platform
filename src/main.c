@@ -18,19 +18,49 @@
 static unsigned long led;
 static color_t blue_clr = blue;
 static volatile unsigned long systime = 0; // ms timer
+static float duty_cycle = 0.1;
 
 int main(void){
     // init port
     PortF_Init();
     
-    // enable timer
-    //enable_timer1a_1000ms();
-    systick_enable(1); // 1ms systick like in FreeRTOS
+    /* use 1 second hardware timer for blinking
+    enable_timer1a_1000ms();
+    while(1);
+    */
+    
+    // 1ms systick like in FreeRTOS
+    systick_enable(1); 
 
+    /* use systick timer with specified 1ms tick to toggle LED
     while(1) {
-        if (!(systime%2000)) {
+        if (!(systime%500)) {
             toggle_portf_led(blue_clr);
-        } // trigger blue led every 2s using systick
+        }
+    } // */
+
+    // use PWM and systick to control PF2 (blue) brightness
+    // add PWM to the PF2
+    GPIO_PORTF_AFSEL_R = (1<<2); // page 671, enable alt func
+    GPIO_PORTF_PCTL_R |= 0x00000500; // add PWM to PF2, page 688 & 1351
+    enable_pwm_pf2(); // start PWM hardware with 50% duty
+    set_pf2_pwm_duty(0.5);
+    int iter = 0, direction = 1;
+    while (1) {
+        // control LED brightness by changing duty cycle
+        //if (!(systime%100)) { // trigger every 100ms
+        //    if (direction) {
+        //        ++iter;
+        //        direction = !(iter == 1);
+        //    }
+        //    else {
+        //        --iter;
+        //        direction = (iter == 0.1);
+        //    }
+        //        --iter;
+        //    // apply PWM
+        //    set_pf2_pwm_duty((float)duty_cycle*iter);
+        //}
     }
 }
 
