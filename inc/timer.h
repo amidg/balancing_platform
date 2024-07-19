@@ -17,6 +17,7 @@ void systick_enable(int ms) {
 
     /* configure STCTRL register for the required operation mode */
     NVIC_ST_CTRL_R = 7; // see page 138 of the MCU manual
+    __asm__ volatile("dmb"); // wait for everything to setup
 }
 
 /*
@@ -66,41 +67,59 @@ void enable_timer1a_1000ms(void) {
     NVIC_EN0_R |= (1<<21);
 }
 
+void enable_pwm_portf(void) {
+
+    /* enable PWM via gating control using RCGCPWM register */
+    SYSCTL_RCGCPWM_R |= 2; // page 354 enable PWM1 clock
+
+    /* Enable System Clock Divisor function  */
+    //SYSCTL_RCC_R |= (1<<20);
+
+    ///* 
+    // * Use pre-divider value of 64
+    // * after that feed clock to PWM1 module
+    // */
+    //SYSCTL_RCC_R |= 0x000E0000; 
+
+    /* Directly feed clock to PWM1 module without pre-divider */
+    SYSCTL_RCC_R &= ~0x00100000; // page 255
+}
+
 /* 
  * this allows to use in-built PWM module to generate PWM signal
  * PWM is generated with specified duty cycle
  */
 void enable_pwm_pf2(void) { // page 1240
-    /* enable PWM via gating control using RCGCPWM register */
-    SYSCTL_RCGCPWM_R = (1<<1); // page 354, set bit 1 to be 1
-    
-    /* enable clock divisor, page 255 */
-    //SYSCTL_RCC_R |= (1<<20); // enable PWM clock div
-    SYSCTL_RCC_R &= ~(1<<20); // use direct clock from the system
+    /* Set PF2 with M1PWM6 channel */
+    GPIO_PORTF_AFSEL_R |= (1<<2);  /* PF2 sets a alternate function */
+    GPIO_PORTF_PCTL_R &= ~0x00000F00; /*set PF2 as output pin */
+    GPIO_PORTF_PCTL_R |= 0x00000500; /* make PF2 PWM output pin */
+    GPIO_PORTF_DEN_R |= (1<<2);      /* set PF2 as a digital pin */
 
     /* disable PWM before configuring */
-    PWM1_CTL_R &= ~(1<<0); // set bit 0
+    PWM1_3_CTL_R &= ~(1<<0); // set bit 0
 
     /* select counter mode */
-    PWM1_CTL_R &= ~(1<<1); // set bit 1
+    PWM1_3_CTL_R &= ~(1<<1); // set bit 1
 
     /* Set PWM output when counter reloaded and clear when matches PWMCMPA */
     PWM1_3_GENA_R = 0x0000008C;
 
     /* set load value for 1kHz (16MHz/16000) */
+    /* set load value for 50Hz 16MHz/65 = 250kHz and (250KHz/5000) */
     PWM1_3_LOAD_R = 16000;
 
-    /* set duty cyle to 50% by loading of 16000 to PWM1CMPA */
-    PWM1_3_CMPA_R = 8000-1;
+    /* Set Duty Cycle of 100% to PWM1CMPA by default*/
+    PWM1_3_CMPA_R = 0;
 
     /* Enable Generator 3 counter */
     PWM1_3_CTL_R = 1;
 
     /* Enable PWM1 channel 6 output, page 1247 */
-    PWM1_ENABLE_R = (1<<7);
+    PWM1_ENABLE_R = 0x40;
 }
 
-// duty must be between 0 and 1
-void set_pf2_pwm_duty(float duty) {
-    PWM1_3_CMPA_R = 16000*duty - 1;
+// duty must be between 0 and 100
+void set_pf2_pwm_duty(uint8_t duty) {
+    PWM1_3_CMPA_R = PWM1_3_LOAD_R*duty/100;
 }

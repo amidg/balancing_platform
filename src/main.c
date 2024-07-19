@@ -18,7 +18,8 @@
 static unsigned long led;
 static color_t blue_clr = blue;
 static volatile unsigned long systime = 0; // ms timer
-static float duty_cycle = 0.1;
+static uint8_t duty = 10; // 10%, int value is used because of floating point building bug, need to figure it out
+static uint8_t direction = 1; // rising direction
 
 int main(void){
     // init port
@@ -39,28 +40,20 @@ int main(void){
         }
     } // */
 
-    // use PWM and systick to control PF2 (blue) brightness
-    // add PWM to the PF2
-    GPIO_PORTF_AFSEL_R = (1<<2); // page 671, enable alt func
-    GPIO_PORTF_PCTL_R |= 0x00000500; // add PWM to PF2, page 688 & 1351
+    /* use PWM and systick to control PF2 blue led brightness */
+    enable_pwm_portf();
     enable_pwm_pf2(); // start PWM hardware with 50% duty
-    set_pf2_pwm_duty(0.5);
-    int iter = 0, direction = 1;
+    set_pf2_pwm_duty(duty);
     while (1) {
         // control LED brightness by changing duty cycle
-        //if (!(systime%100)) { // trigger every 100ms
-        //    if (direction) {
-        //        ++iter;
-        //        direction = !(iter == 1);
-        //    }
-        //    else {
-        //        --iter;
-        //        direction = (iter == 0.1);
-        //    }
-        //        --iter;
-        //    // apply PWM
-        //    set_pf2_pwm_duty((float)duty_cycle*iter);
-        //}
+        if (!(systime%250)) {
+            if (duty == 100)
+                direction = 0;
+            else if (duty == 10)
+                direction = 1;
+            set_pf2_pwm_duty(duty);
+            duty = (direction) ? duty+10 : duty-10;
+        }
     }
 }
 

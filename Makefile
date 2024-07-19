@@ -1,26 +1,3 @@
-#
-# Copyright (c) 2018, Shawn D'silva <shawn@shawndsilva.com>
-# All rights reserved.
-#
-#  This file is free software: you can redistribute it and/or modify
- # it under the terms of the GNU Lesser General Public License as published by
- # the Free Software Foundation, either version 3 of the License, or
- # (at your option) any later version.
- #
- # This file is distributed in the hope that it will be useful,
- # but WITHOUT ANY WARRANTY; without even the implied warranty of
- # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- # GNU Lesser General Public License for more details.
- #
- # You should have received a copy of the GNU Lesser General Public License
- # along with this library.  If not, see <http://www.gnu.org/licenses/>.
-#
-# File:			Makefile
-# Author:		Shawn D'silva <https://www.shawndsilva.com>.
-# Version:		1.0.0.
-# Description:	Makefile used to build files for this program
-
-
 # PROJECT: name of the output file
 PROJECT = main
 #DEV : your TM4C123GH6PM when connected to your system,usually will be /dev/ttyACM0
@@ -47,37 +24,42 @@ FLASHER = lm4flash #flashing utility
 RM      = rm -rf
 MKDIR   = @mkdir -p $(@D) #creates folders if not present
 
-#GCC FLAGS
-CFLAGS = -ggdb -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16
+# GCC FLAGS
+CFLAGS = -ggdb -mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -lgcc
 CFLAGS += -mfloat-abi=softfp -Os -MD -std=c99 -c    
 
-#LINKER FLAGS
+# LINKER FLAGS
 LDFLAGS = -T $(LD_SCRIPT) -e Reset_Handler 
 
 # Rules to build bin
 all: bin/$(PROJECT).bin
 
-$(OBJ)%.o: src/%.c               #turns .c source files into object files
+#turns .c source files into object files
+$(OBJ)%.o: src/%.c 
 	$(MKDIR)              
 	$(CC) -o $@ $^ $(INC) $(CFLAGS)
 
-$(OBJ)%.o: libs/%.c                #turns .c source files into object files
+#turns .c source files into object files
+$(OBJ)%.o: libs/%.c 
 	$(MKDIR)              
 	$(CC) -o $@ $^ $(INC) $(CFLAGS)
 	
-bin/$(PROJECT).elf: $(OBJS)      ##contains debug symbols for GNU GDB
+#contains debug symbols for GNU GDB
+bin/$(PROJECT).elf: $(OBJS)
 	$(MKDIR)              
 	$(LD) -o $@ $^ $(LDFLAGS)
 
-bin/$(PROJECT).bin: bin/$(PROJECT).elf    #debug symbols for GNU GDB stripped by objcopy,finished binary ready for flashing
+# debug symbols for GNU GDB stripped by objcopy
+# finished binary ready for flashing
+bin/$(PROJECT).bin: bin/$(PROJECT).elf
 	$(OBJCOPY) -O binary $< $@
 
 
-#Flashes bin to TM4C
+# Flashes bin to TM4C
 flash:
 	$(FLASHER) -S $(DEV) bin/$(PROJECT).bin
 
-#remove object and bin files
+# remove object and bin files
 clean:
 	-$(RM) obj
 	-$(RM) bin
